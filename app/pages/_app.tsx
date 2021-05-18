@@ -8,7 +8,6 @@ import {
   useQueryErrorResetBoundary,
 } from "blitz"
 import { ErrorBoundary } from "react-error-boundary"
-import LoginForm from "app/auth/components/LoginForm"
 import { Suspense } from "react"
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -30,7 +29,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
 function RootErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
   if (error instanceof AuthenticationError) {
-    return <LoginForm onSuccess={resetErrorBoundary} />
+    return <span />
   } else if (error instanceof AuthorizationError) {
     return (
       <ErrorComponent
