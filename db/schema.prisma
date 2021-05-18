@@ -1,65 +1,944 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-// --------------------------------------
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
-model User {
-  id             Int      @id @default(autoincrement())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+model armor {
+  id                  Int             @id @default(autoincrement())
+  order_id            Int?
+  rarity              Int?
+  rank                String?
+  armor_type          String?
+  armorset_id         Int?
+  armorset_bonus_id   Int?
+  recipe_id           Int?
+  male                Boolean?
+  female              Boolean?
+  slot_1              Int?
+  slot_2              Int?
+  slot_3              Int?
+  defense_base        Int?
+  defense_max         Int?
+  defense_augment_max Int?
+  fire                Int?
+  water               Int?
+  thunder             Int?
+  ice                 Int?
+  dragon              Int?
+  armorset            armorset?       @relation(fields: [armorset_id], references: [id])
+  recipe_item         RecipeOnArmor[]
+  armor_skill         armor_skill[]
+  armor_text          armor_text[]
+}
+
+model armor_skill {
+  armor_id     Int
+  skilltree_id Int
+  level        Int?
+  armor        armor     @relation(fields: [armor_id], references: [id])
+  skilltree    skilltree @relation(fields: [skilltree_id], references: [id])
+
+  @@id([armor_id, skilltree_id])
+}
+
+model armor_text {
+  id       Int
+  lang_id  String
+  name     String?
+  armor    armor    @relation(fields: [id], references: [id])
+  language language @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model armorset {
+  id                Int             @id @default(autoincrement())
+  rank              String?
+  monster_id        Int?
+  armorset_bonus_id Int?
+  monster           monster?        @relation(fields: [monster_id], references: [id])
+  armor             armor[]
+  armorset_text     armorset_text[]
+}
+
+model armorset_bonus_skill {
+  setbonus_id  Int
+  skilltree_id Int
+  required     Int?
+  skilltree    skilltree @relation(fields: [skilltree_id], references: [id])
+
+  @@id([setbonus_id, skilltree_id])
+}
+
+model armorset_bonus_text {
+  id          Int
+  lang_id     String
+  name        String?
+  description String?
+  language    language @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model armorset_text {
+  id       Int
+  lang_id  String
+  name     String?
+  armorset armorset @relation(fields: [id], references: [id])
+  language language @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model charm {
+  id          Int             @id @default(autoincrement())
+  order_id    Int?
+  rarity      Int?
+  previous_id Int?
+  recipe_id   Int?
+  charm       charm?          @relation("charmTocharm_previous_id", fields: [previous_id], references: [id])
+  recipe_item RecipeOnCharm[]
+  other_charm charm[]         @relation("charmTocharm_previous_id")
+  charm_skill charm_skill[]
+  charm_text  charm_text[]
+}
+
+model charm_skill {
+  charm_id     Int
+  skilltree_id Int
+  level        Int?
+  charm        charm     @relation(fields: [charm_id], references: [id])
+  skilltree    skilltree @relation(fields: [skilltree_id], references: [id])
+
+  @@id([charm_id, skilltree_id])
+}
+
+model charm_text {
+  id          Int
+  lang_id     String
+  name        String?
+  description String?
+  charm       charm    @relation(fields: [id], references: [id])
+  language    language @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model decoration {
+  id                                            Int               @id @default(autoincrement())
+  slot                                          Int?
+  rarity                                        Int?
+  icon_color                                    String?
+  skilltree_id                                  Int
+  skilltree_level                               Int
+  skilltree2_id                                 Int?
+  skilltree2_level                              Int?
+  mysterious_feystone_percent                   Float?
+  glowing_feystone_percent                      Float?
+  worn_feystone_percent                         Float?
+  warped_feystone_percent                       Float?
+  ancient_feystone_percent                      Float?
+  carved_feystone_percent                       Float?
+  sealed_feystone_percent                       Float?
+  skilltree_decoration_skilltree2_idToskilltree skilltree?        @relation("decoration_skilltree2_idToskilltree", fields: [skilltree2_id], references: [id])
+  skilltree_decoration_skilltree_idToskilltree  skilltree         @relation("decoration_skilltree_idToskilltree", fields: [skilltree_id], references: [id])
+  decoration_text                               decoration_text[]
+}
+
+model decoration_text {
+  id         Int
+  lang_id    String
+  name       String?
+  decoration decoration @relation(fields: [id], references: [id])
+  language   language   @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model item {
+  id                                                Int                @id @default(autoincrement())
+  category                                          String?
+  subcategory                                       String?
+  rarity                                            Int?
+  buy_price                                         Int?
+  sell_price                                        Int?
+  carry_limit                                       Int?
+  points                                            Int?
+  icon_name                                         String?
+  icon_color                                        String?
+  item_combination_itemToitem_combination_first_id  item_combination[] @relation("itemToitem_combination_first_id")
+  item_combination_itemToitem_combination_result_id item_combination[] @relation("itemToitem_combination_result_id")
+  item_combination_itemToitem_combination_second_id item_combination[] @relation("itemToitem_combination_second_id")
+  item_text                                         item_text[]
+  location_item                                     location_item[]
+  monster_reward                                    monster_reward[]
+  quest_reward                                      quest_reward[]
+  recipe_item                                       RecipeItem[]
+}
+
+model item_combination {
+  id                                    Int   @id @default(autoincrement())
+  result_id                             Int?
+  first_id                              Int?
+  second_id                             Int?
+  quantity                              Int?
+  item_itemToitem_combination_first_id  item? @relation("itemToitem_combination_first_id", fields: [first_id], references: [id])
+  item_itemToitem_combination_result_id item? @relation("itemToitem_combination_result_id", fields: [result_id], references: [id])
+  item_itemToitem_combination_second_id item? @relation("itemToitem_combination_second_id", fields: [second_id], references: [id])
+}
+
+model item_text {
+  id          Int
+  lang_id     String
+  name        String?
+  description String?
+  item        item     @relation(fields: [id], references: [id])
+  language    language @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model kinsect {
+  id                  Int               @id @default(autoincrement())
+  rarity              Int?
+  previous_kinsect_id Int?
+  recipe_id           Int?
+  attack_type         String?
+  dust_effect         String?
+  power               Int?
+  speed               Int?
+  heal                Int?
+  final               Boolean?
+  kinsect             kinsect?          @relation("kinsectTokinsect_previous_kinsect_id", fields: [previous_kinsect_id], references: [id])
+  recipe_item         RecipeOnKinsect[]
+  other_kinsect       kinsect[]         @relation("kinsectTokinsect_previous_kinsect_id")
+  kinsect_text        kinsect_text[]
+}
+
+model kinsect_text {
+  id       Int
+  lang_id  String
+  name     String?
+  kinsect  kinsect  @relation(fields: [id], references: [id])
+  language language @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model language {
+  id                            String                          @id
+  name                          String?
+  is_complete                   String?
+  armor_text                    armor_text[]
+  armorset_bonus_text           armorset_bonus_text[]
+  armorset_text                 armorset_text[]
+  charm_text                    charm_text[]
+  decoration_text               decoration_text[]
+  item_text                     item_text[]
+  kinsect_text                  kinsect_text[]
+  location_camp_text            location_camp_text[]
+  location_text                 location_text[]
+  monster_break_text            monster_break_text[]
+  monster_hitzone_text          monster_hitzone_text[]
+  monster_reward_condition_text monster_reward_condition_text[]
+  monster_text                  monster_text[]
+  quest_text                    quest_text[]
+  skill                         skill[]
+  skilltree_text                skilltree_text[]
+  tool_text                     tool_text[]
+  weapon_melody_text            weapon_melody_text[]
+  weapon_text                   weapon_text[]
+}
+
+model location_camp_text {
+  id            Int            @id @default(autoincrement())
+  location_id   Int?
+  lang_id       String?
+  name          String?
+  area          Int?
+  language      language?      @relation(fields: [lang_id], references: [id])
+  location_text location_text? @relation(fields: [location_id, lang_id], references: [id, lang_id])
+}
+
+model location_item {
+  id            Int              @id @default(autoincrement())
+  location_id   Int?
+  area          Int?
+  rank          String?
+  item_id       Int?
+  stack         Int?
+  percentage    Int?
+  nodes         Int
+  item          item?            @relation(fields: [item_id], references: [id])
+  location_text TextOnLocation[]
+
+  @@index([item_id], name: "ix_location_item_item_id")
+}
+
+model location_text {
+  id                 Int
+  order_id           Int?
+  lang_id            String
+  name               String?
+  language           language              @relation(fields: [lang_id], references: [id])
+  location_camp_text location_camp_text[]
+  location_item      TextOnLocation[]
+  monster_habitat    TextOnHabitat[]
+  quest              LocationTextOnQuest[]
+
+  @@id([id, lang_id])
+}
+
+// MARK TextOnLocation
+model TextOnLocation {
+  id         Int
+  locationId Int
+  langId     String
+
+  location     location_item @relation(fields: [id], references: [id])
+  locationText location_text @relation(fields: [locationId, langId], references: [id, lang_id])
+
+  @@id([id, locationId, langId])
+}
+
+// MARK TextOnHabitat
+model TextOnHabitat {
+  habitatId  Int
+  locationId Int
+  langId     String
+
+  habit    monster_habitat @relation(fields: [habitatId], references: [id])
+  location location_text   @relation(fields: [locationId, langId], references: [id, lang_id])
+
+  @@id([habitatId, locationId, langId])
+}
+
+model monster {
+  id                     Int               @id @default(autoincrement())
+  order_id               Int?              @unique
+  size                   String?
+  icon                   String?
+  pitfall_trap           Boolean?
+  shock_trap             Boolean?
+  vine_trap              Boolean?
+  has_weakness           Boolean?
+  has_alt_weakness       Boolean?
+  weakness_fire          Int?
+  weakness_water         Int?
+  weakness_ice           Int?
+  weakness_thunder       Int?
+  weakness_dragon        Int?
+  weakness_poison        Int?
+  weakness_sleep         Int?
+  weakness_paralysis     Int?
+  weakness_blast         Int?
+  weakness_stun          Int?
+  alt_weakness_fire      Int?
+  alt_weakness_water     Int?
+  alt_weakness_ice       Int?
+  alt_weakness_thunder   Int?
+  alt_weakness_dragon    Int?
+  alt_weakness_poison    Int?
+  alt_weakness_sleep     Int?
+  alt_weakness_paralysis Int?
+  alt_weakness_blast     Int?
+  alt_weakness_stun      Int?
+  ailment_roar           String?
+  ailment_wind           String?
+  ailment_tremor         String?
+  ailment_defensedown    Boolean?
+  ailment_fireblight     Boolean?
+  ailment_waterblight    Boolean?
+  ailment_thunderblight  Boolean?
+  ailment_iceblight      Boolean?
+  ailment_dragonblight   Boolean?
+  ailment_blastblight    Boolean?
+  ailment_regional       Boolean?
+  ailment_poison         Boolean?
+  ailment_sleep          Boolean?
+  ailment_paralysis      Boolean?
+  ailment_bleed          Boolean?
+  ailment_stun           Boolean?
+  ailment_mud            Boolean?
+  ailment_effluvia       Boolean?
+  armorset               armorset[]
+  monster_break          monster_break[]
+  monster_habitat        monster_habitat[]
+  monster_hitzone        monster_hitzone[]
+  monster_reward         monster_reward[]
+  monster_text           monster_text[]
+  quest_monster          quest_monster[]
+}
+
+model monster_break {
+  id                 Int                  @id @default(autoincrement())
+  monster_id         Int?
+  flinch             Int?
+  wound              Int?
+  sever              Int?
+  extract            String?
+  monster            monster?             @relation(fields: [monster_id], references: [id])
+  monster_break_text monster_break_text[]
+
+  @@index([monster_id], name: "ix_monster_break_monster_id")
+}
+
+model monster_break_text {
+  id            Int
+  lang_id       String
+  part_name     String?
+  monster_break monster_break @relation(fields: [id], references: [id])
+  language      language      @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model monster_habitat {
+  id            Int             @id @default(autoincrement())
+  monster_id    Int?
+  location_id   Int?
+  start_area    String?
+  move_area     String?
+  rest_area     String?
+  location_text TextOnHabitat[]
+  monster       monster?        @relation(fields: [monster_id], references: [id])
+
+  @@unique([monster_id, location_id], name: "sqlite_autoindex_monster_habitat_1")
+  @@index([location_id], name: "ix_monster_habitat_location_id")
+  @@index([monster_id], name: "ix_monster_habitat_monster_id")
+}
+
+model monster_hitzone {
+  id                   Int                    @id @default(autoincrement())
+  monster_id           Int?
+  cut                  Int?
+  impact               Int?
+  shot                 Int?
+  fire                 Int?
+  water                Int?
+  ice                  Int?
+  thunder              Int?
+  dragon               Int?
+  ko                   Int?
+  monster              monster?               @relation(fields: [monster_id], references: [id])
+  monster_hitzone_text monster_hitzone_text[]
+
+  @@index([monster_id], name: "ix_monster_hitzone_monster_id")
+}
+
+model monster_hitzone_text {
+  id              Int
+  lang_id         String
+  name            String?
+  monster_hitzone monster_hitzone @relation(fields: [id], references: [id])
+  language        language        @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model monster_reward {
+  id                            Int                       @id @default(autoincrement())
+  monster_id                    Int?
+  condition_id                  Int?
+  rank                          String?
+  item_id                       Int?
+  stack                         Int?
+  percentage                    Int?
+  monster_reward_condition_text ConditionOnMosterReward[]
+  item                          item?                     @relation(fields: [item_id], references: [id])
+  monster                       monster?                  @relation(fields: [monster_id], references: [id])
+
+  @@index([item_id], name: "ix_monster_reward_item_id")
+  @@index([monster_id], name: "ix_monster_reward_monster_id")
+}
+
+model monster_reward_condition_text {
+  id             Int
+  lang_id        String
   name           String?
-  email          String   @unique
-  hashedPassword String?
-  role           String   @default("USER")
+  language       language                  @relation(fields: [lang_id], references: [id])
+  monster_reward ConditionOnMosterReward[]
 
-  tokens   Token[]
-  sessions Session[]
+  @@id([id, lang_id])
 }
 
-model Session {
-  id                 Int       @id @default(autoincrement())
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  expiresAt          DateTime?
-  handle             String    @unique
-  hashedSessionToken String?
-  antiCSRFToken      String?
-  publicData         String?
-  privateData        String?
+// MARK ConditionOnMosterReward
+model ConditionOnMosterReward {
+  mosterRewardId Int
+  conditionId    Int
+  langId         String
 
-  user   User? @relation(fields: [userId], references: [id])
-  userId Int?
+  mosterReward monster_reward                @relation(fields: [mosterRewardId], references: [id])
+  condition    monster_reward_condition_text @relation(fields: [conditionId, langId], references: [id, lang_id])
+
+  @@id([mosterRewardId, conditionId, langId])
 }
 
-model Token {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  hashedToken String
-  type        String
-  // See note below about TokenType enum
-  // type        TokenType
-  expiresAt   DateTime
-  sentTo      String
+model monster_text {
+  id                    Int
+  lang_id               String
+  name                  String?
+  ecology               String?
+  description           String?
+  alt_state_description String?
+  monster               monster  @relation(fields: [id], references: [id])
+  language              language @relation(fields: [lang_id], references: [id])
 
-  user   User @relation(fields: [userId], references: [id])
-  userId Int
-
-  @@unique([hashedToken, type])
+  @@id([id, lang_id])
 }
 
-// NOTE: It's highly recommended to use an enum for the token type
-//       but enums only work in Postgres.
-//       See: https://blitzjs.com/docs/database-overview#switch-to-postgresql
-// enum TokenType {
-//   RESET_PASSWORD
-// }
+model quest {
+  id            Int                   @id @default(autoincrement())
+  order_id      Int?
+  category      String?
+  rank          String?
+  stars         Int?
+  stars_raw     Int?
+  quest_type    String?
+  location_id   Int?
+  zenny         Int?
+  location_text LocationTextOnQuest[]
+  quest_monster quest_monster[]
+  quest_reward  quest_reward[]
+  quest_text    quest_text[]
+}
+
+model LocationTextOnQuest {
+  questId    Int
+  locationId Int
+  langId     String
+
+  quest        quest         @relation(fields: [questId], references: [id])
+  locationText location_text @relation(fields: [locationId, langId], references: [id, lang_id])
+
+  @@id([questId, locationId, langId])
+}
+
+model quest_monster {
+  quest_id     Int
+  monster_id   Int
+  quantity     Int?
+  is_objective Boolean?
+  monster      monster  @relation(fields: [monster_id], references: [id])
+  quest        quest    @relation(fields: [quest_id], references: [id])
+
+  @@id([quest_id, monster_id])
+}
+
+model quest_reward {
+  id         Int     @id @default(autoincrement())
+  quest_id   Int?
+  group      String?
+  item_id    Int?
+  stack      Int?
+  percentage Int?
+  item       item?   @relation(fields: [item_id], references: [id])
+  quest      quest?  @relation(fields: [quest_id], references: [id])
+
+  @@index([quest_id], name: "ix_quest_reward_quest_id")
+  @@index([item_id], name: "ix_quest_reward_item_id")
+}
+
+model quest_text {
+  id          Int
+  lang_id     String
+  name        String?
+  objective   String?
+  description String?
+  quest       quest    @relation(fields: [id], references: [id])
+  language    language @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model RecipeItem {
+  recipe_id Int
+  item_id   Int
+  quantity  Int?
+  item      item              @relation(fields: [item_id], references: [id])
+  armor     RecipeOnArmor[]
+  charm     RecipeOnCharm[]
+  kinsect   RecipeOnKinsect[]
+
+  weapon_recipe_itemToweapon_create_recipe_id  CreateRecipeOnWeapon[]
+  weapon_recipe_itemToweapon_upgrade_recipe_id UpgradeRecipeOnWeapon[]
+
+  @@id([recipe_id, item_id])
+  @@map("recipe_item")
+}
+
+// MARK RecipeOnArmor
+model RecipeOnArmor {
+  armorId  Int
+  recipeId Int
+  itemId   Int
+
+  armor  armor      @relation(fields: [armorId], references: [id])
+  recipe RecipeItem @relation(fields: [recipeId, itemId], references: [recipe_id, item_id])
+
+  @@id([armorId, recipeId])
+}
+
+// MARK RecipeOnCharm
+model RecipeOnCharm {
+  charmId  Int
+  recipeId Int
+  itemId   Int
+
+  charm  charm      @relation(fields: [charmId], references: [id])
+  recipe RecipeItem @relation(fields: [recipeId, itemId], references: [recipe_id, item_id])
+
+  @@id([charmId, recipeId])
+}
+
+// MARK RecipeOnKinsect
+model RecipeOnKinsect {
+  kinsectId Int
+  recipeId  Int
+  itemId    Int
+
+  kinsect kinsect    @relation(fields: [kinsectId], references: [id])
+  recipe  RecipeItem @relation(fields: [recipeId, itemId], references: [recipe_id, item_id])
+
+  @@id([kinsectId, recipeId])
+}
+
+model skill {
+  skilltree_id Int
+  lang_id      String
+  level        Int
+  description  String?
+  language     language  @relation(fields: [lang_id], references: [id])
+  skilltree    skilltree @relation(fields: [skilltree_id], references: [id])
+
+  @@id([skilltree_id, lang_id, level])
+}
+
+model skilltree {
+  id                                             Int                    @id @default(autoincrement())
+  max_level                                      Int?
+  icon_color                                     String?
+  secret                                         Int?
+  unlocks_id                                     Int?
+  skilltree                                      skilltree?             @relation("skilltreeToskilltree_unlocks_id", fields: [unlocks_id], references: [id])
+  armor_skill                                    armor_skill[]
+  armorset_bonus_skill                           armorset_bonus_skill[]
+  charm_skill                                    charm_skill[]
+  decoration_decoration_skilltree2_idToskilltree decoration[]           @relation("decoration_skilltree2_idToskilltree")
+  decoration_decoration_skilltree_idToskilltree  decoration[]           @relation("decoration_skilltree_idToskilltree")
+  skill                                          skill[]
+  other_skilltree                                skilltree[]            @relation("skilltreeToskilltree_unlocks_id")
+  skilltree_text                                 skilltree_text[]
+  weapon_skill                                   weapon_skill[]
+}
+
+model skilltree_text {
+  id          Int
+  lang_id     String
+  name        String?
+  description String?
+  skilltree   skilltree @relation(fields: [id], references: [id])
+  language    language  @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model tool {
+  id                Int         @id @default(autoincrement())
+  order_id          Int?
+  tool_type         String?
+  duration          Int?
+  duration_upgraded Int?
+  recharge          Int?
+  slot_1            Int?
+  slot_2            Int?
+  slot_3            Int?
+  icon_color        String?
+  tool_text         tool_text[]
+}
+
+model tool_text {
+  id          Int
+  lang_id     String
+  name        String?
+  name_base   String?
+  description String?
+  tool        tool     @relation(fields: [id], references: [id])
+  language    language @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model weapon {
+  id                 Int          @id @default(autoincrement())
+  order_id           Int?
+  weapon_type        String?
+  rarity             Int?
+  category           String?
+  previous_weapon_id Int?
+  create_recipe_id   Int?
+  upgrade_recipe_id  Int?
+  attack             Int?
+  attack_true        Int?
+  affinity           Int?
+  defense            Int?
+  slot_1             Int?
+  slot_2             Int?
+  slot_3             Int?
+  element1           String?
+  element1_attack    Int?
+  element2           String?
+  element2_attack    Int?
+  element_hidden     Boolean?
+  elderseal          String?
+  sharpness          String?
+  sharpness_maxed    Boolean?
+  craftable          Boolean?
+  final              Boolean?
+  kinsect_bonus      String?
+  phial              String?
+  phial_power        Int?
+  shelling           String?
+  shelling_level     Int?
+  notes              String?
+  coating_close      Int?
+  coating_power      Int?
+  coating_paralysis  Int?
+  coating_poison     Int?
+  coating_sleep      Int?
+  coating_blast      Int?
+  ammo_id            Int?
+  armorset_bonus_id  Int?
+  weapon_ammo        weapon_ammo? @relation(fields: [ammo_id], references: [id])
+  weapon             weapon?      @relation("weaponToweapon_previous_weapon_id", fields: [previous_weapon_id], references: [id])
+
+  recipe_item_recipe_itemToweapon_create_recipe_id CreateRecipeOnWeapon[]
+
+  recipe_item_recipe_itemToweapon_upgrade_recipe_id UpgradeRecipeOnWeapon[]
+
+  other_weapon weapon[]       @relation("weaponToweapon_previous_weapon_id")
+  weapon_skill weapon_skill[]
+  weapon_text  weapon_text[]
+}
+
+// MARK RecipeOnWeapon
+model CreateRecipeOnWeapon {
+  weaponId Int
+  recipeId Int
+  itemId   Int
+
+  weapon weapon     @relation(fields: [weaponId], references: [id])
+  recipe RecipeItem @relation(fields: [recipeId, itemId], references: [recipe_id, item_id])
+
+  @@id([weaponId, recipeId])
+}
+
+// MARK UpgradeRecipeOnWeapon
+model UpgradeRecipeOnWeapon {
+  weaponId Int
+  recipeId Int
+  itemId   Int
+
+  weapon weapon     @relation(fields: [weaponId], references: [id])
+  recipe RecipeItem @relation(fields: [recipeId, itemId], references: [recipe_id, item_id])
+
+  @@id([weaponId, recipeId])
+}
+
+model weapon_ammo {
+  id                Int      @id @default(autoincrement())
+  deviation         String?
+  special_ammo      String?
+  normal1_clip      Int?
+  normal1_rapid     Boolean?
+  normal1_recoil    Int?
+  normal1_reload    String?
+  normal2_clip      Int?
+  normal2_rapid     Boolean?
+  normal2_recoil    Int?
+  normal2_reload    String?
+  normal3_clip      Int?
+  normal3_rapid     Boolean?
+  normal3_recoil    Int?
+  normal3_reload    String?
+  pierce1_clip      Int?
+  pierce1_rapid     Boolean?
+  pierce1_recoil    Int?
+  pierce1_reload    String?
+  pierce2_clip      Int?
+  pierce2_rapid     Boolean?
+  pierce2_recoil    Int?
+  pierce2_reload    String?
+  pierce3_clip      Int?
+  pierce3_rapid     Boolean?
+  pierce3_recoil    Int?
+  pierce3_reload    String?
+  spread1_clip      Int?
+  spread1_rapid     Boolean?
+  spread1_recoil    Int?
+  spread1_reload    String?
+  spread2_clip      Int?
+  spread2_rapid     Boolean?
+  spread2_recoil    Int?
+  spread2_reload    String?
+  spread3_clip      Int?
+  spread3_rapid     Boolean?
+  spread3_recoil    Int?
+  spread3_reload    String?
+  sticky1_clip      Int?
+  sticky1_rapid     Boolean?
+  sticky1_recoil    Int?
+  sticky1_reload    String?
+  sticky2_clip      Int?
+  sticky2_rapid     Boolean?
+  sticky2_recoil    Int?
+  sticky2_reload    String?
+  sticky3_clip      Int?
+  sticky3_rapid     Boolean?
+  sticky3_recoil    Int?
+  sticky3_reload    String?
+  cluster1_clip     Int?
+  cluster1_rapid    Boolean?
+  cluster1_recoil   Int?
+  cluster1_reload   String?
+  cluster2_clip     Int?
+  cluster2_rapid    Boolean?
+  cluster2_recoil   Int?
+  cluster2_reload   String?
+  cluster3_clip     Int?
+  cluster3_rapid    Boolean?
+  cluster3_recoil   Int?
+  cluster3_reload   String?
+  recover1_clip     Int?
+  recover1_rapid    Boolean?
+  recover1_recoil   Int?
+  recover1_reload   String?
+  recover2_clip     Int?
+  recover2_rapid    Boolean?
+  recover2_recoil   Int?
+  recover2_reload   String?
+  poison1_clip      Int?
+  poison1_rapid     Boolean?
+  poison1_recoil    Int?
+  poison1_reload    String?
+  poison2_clip      Int?
+  poison2_rapid     Boolean?
+  poison2_recoil    Int?
+  poison2_reload    String?
+  paralysis1_clip   Int?
+  paralysis1_rapid  Boolean?
+  paralysis1_recoil Int?
+  paralysis1_reload String?
+  paralysis2_clip   Int?
+  paralysis2_rapid  Boolean?
+  paralysis2_recoil Int?
+  paralysis2_reload String?
+  sleep1_clip       Int?
+  sleep1_rapid      Boolean?
+  sleep1_recoil     Int?
+  sleep1_reload     String?
+  sleep2_clip       Int?
+  sleep2_rapid      Boolean?
+  sleep2_recoil     Int?
+  sleep2_reload     String?
+  exhaust1_clip     Int?
+  exhaust1_rapid    Boolean?
+  exhaust1_recoil   Int?
+  exhaust1_reload   String?
+  exhaust2_clip     Int?
+  exhaust2_rapid    Boolean?
+  exhaust2_recoil   Int?
+  exhaust2_reload   String?
+  flaming_clip      Int?
+  flaming_rapid     Boolean?
+  flaming_recoil    Int?
+  flaming_reload    String?
+  water_clip        Int?
+  water_rapid       Boolean?
+  water_recoil      Int?
+  water_reload      String?
+  freeze_clip       Int?
+  freeze_rapid      Boolean?
+  freeze_recoil     Int?
+  freeze_reload     String?
+  thunder_clip      Int?
+  thunder_rapid     Boolean?
+  thunder_recoil    Int?
+  thunder_reload    String?
+  dragon_clip       Int?
+  dragon_rapid      Boolean?
+  dragon_recoil     Int?
+  dragon_reload     String?
+  slicing_clip      Int?
+  slicing_rapid     Boolean?
+  slicing_recoil    Int?
+  slicing_reload    String?
+  wyvern_clip       Int?
+  wyvern_reload     String?
+  demon_clip        Int?
+  demon_recoil      Int?
+  demon_reload      String?
+  armor_clip        Int?
+  armor_recoil      Int?
+  armor_reload      String?
+  tranq_clip        Int?
+  tranq_recoil      Int?
+  tranq_reload      String?
+  weapon            weapon[]
+}
+
+model weapon_melody {
+  id                  Int                   @id @default(autoincrement())
+  base_duration       Int?
+  base_extension      Int?
+  m1_duration         Int?
+  m1_extension        Int?
+  m2_duration         Int?
+  m2_extension        Int?
+  weapon_melody_notes weapon_melody_notes[]
+  weapon_melody_text  weapon_melody_text[]
+}
+
+model weapon_melody_notes {
+  id            Int
+  notes         String
+  weapon_melody weapon_melody @relation(fields: [id], references: [id])
+
+  @@id([id, notes])
+}
+
+model weapon_melody_text {
+  id            Int
+  lang_id       String
+  name          String?
+  effect1       String?
+  effect2       String?
+  weapon_melody weapon_melody @relation(fields: [id], references: [id])
+  language      language      @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
+
+model weapon_skill {
+  weapon_id    Int
+  skilltree_id Int
+  level        Int?
+  skilltree    skilltree @relation(fields: [skilltree_id], references: [id])
+  weapon       weapon    @relation(fields: [weapon_id], references: [id])
+
+  @@id([weapon_id, skilltree_id])
+}
+
+model weapon_text {
+  id       Int
+  lang_id  String
+  name     String?
+  weapon   weapon   @relation(fields: [id], references: [id])
+  language language @relation(fields: [lang_id], references: [id])
+
+  @@id([id, lang_id])
+}
